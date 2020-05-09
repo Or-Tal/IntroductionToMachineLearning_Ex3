@@ -1,8 +1,11 @@
 import numpy as np
 from abc import abstractmethod, ABC
 from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
 
+# ================ in-class models ================
 class Model(ABC):
     """
     base class
@@ -78,6 +81,49 @@ class Model(ABC):
         return y.reshape((y.shape[0], 1))
 
 
+class ModelWrapper:
+    """
+    wrapper class to restrict API on external library model
+    """
+    def __init__(self, model):
+        self._model = model
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        """
+        Given a training set as X in R^(d x m) and y in {-1, 1}, this method learns the
+        parameters of the model and stores the trained model (namely, the variables that
+        define hypothesis chosen) in self.model.
+        :param X:   input in R^(d x m)
+        :param y:   ground truth tag in {-1, 1}
+        :return:    None
+        """
+        return self._model.fit(X, y)
+
+    def predict(self, X: np.ndarray):
+        """
+        :param X:   unlabeled test set X in R^(d x m) where d = #features, m = #samples
+        :return:    predicted labels vector of length m, matching the given samples
+        """
+        return self._model.predict(X)
+
+    def score(self, X: np.ndarray, y: np.ndarray):
+        """
+        estimates model score
+        :param X:   unlabeled test set X in R^(d x m) where d = #features, m = #samples
+        :param y:   ground truth labels
+        :return:    dictionary with the following fields:
+                    - num samples: number of samples in the test set
+                    - error: error (misclassification) rate
+                    - accuracy: accuracy
+                    - FPR: false positive rate
+                    - TPR: true positive rate
+                    - precision: precision
+                    - recall: recall
+        """
+        return self._model.score(X, y)
+
+
+# ================ Classifiers ================
 class Perceptron:
     """
     Implementation of a half-space classifier using the perceptron algorithm.
@@ -225,6 +271,25 @@ class LDA:
                     + np.log(pr_y))
 
 
+class SVM:
+    """
+    Implementation of SVM classifier (wrapper) using sklearn SVC library
+    """
+    def __init__(self, C=1e10, kernel='linear'):
+        self.model = ModelWrapper(SVC(C, kernel))
 
 
+class Logistics:
+    """
+    Implementation of LogisticRegression classifier (wrapper) using sklearn
+    """
+    def __init__(self, solver='liblinear'):
+        self.model = ModelWrapper(LogisticRegression(solver))
 
+
+class DesicionTree:
+    """
+    Implementation of Desicion Tree classifier (wrapper) using sklearn
+    """
+    def __init__(self, max_depth=1):
+        self.model = ModelWrapper(DecisionTreeClassifier(max_depth=max_depth))
