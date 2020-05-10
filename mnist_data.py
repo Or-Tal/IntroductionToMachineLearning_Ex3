@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-import time
 from models import *
 from ex3_utils import *
 

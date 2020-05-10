@@ -52,7 +52,9 @@ def gen_hyperplane_func(hypothesis='true'):
 def draw_samples(m, x: np.ndarray, y: np.ndarray):
     """
     draw m images uniformly from the test set
-    :param m:
+    :param m: num of samples to draw
+    :param x: train set
+    :param y: test set
     :return: formatted_samples (m, 28^2), tags = their tags
     """
     # uniformly choose m indexes

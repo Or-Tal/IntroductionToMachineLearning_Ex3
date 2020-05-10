@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 from models import *
 from ex3_utils import *
 
