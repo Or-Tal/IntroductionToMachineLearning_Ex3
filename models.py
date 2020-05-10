@@ -3,6 +3,7 @@ from abc import abstractmethod, ABC
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 
 # ================ in-class models ================
@@ -87,6 +88,7 @@ class Model(ABC):
 class ModelWrapper:
     """
     wrapper class to restrict API on external library model
+    NOTE: X array format sklearn models use is X.T to course definition
     """
     def __init__(self, model):
         self._model = model
@@ -100,14 +102,14 @@ class ModelWrapper:
         :param y:   ground truth tag in {-1, 1}
         :return:    None
         """
-        return self._model.fit(X, y)
+        return self._model.fit(X.T, y)
 
     def predict(self, X: np.ndarray):
         """
         :param X:   unlabeled test set X in R^(d x m) where d = #features, m = #samples
         :return:    predicted labels vector of length m, matching the given samples
         """
-        return self._model.predict(X)
+        return self._model.predict(X.T)
 
     def score(self, X: np.ndarray, y: np.ndarray):
         """
@@ -123,7 +125,7 @@ class ModelWrapper:
                     - precision: precision
                     - recall: recall
         """
-        return self._model.score(X, y)
+        return self._model.score(X.T, y)
 
     def get_weights(self):
         weights = Model.to_col_vec(self._model.coef_)
@@ -307,7 +309,7 @@ class Logistics:
     Implementation of LogisticRegression classifier (wrapper) using sklearn
     """
     def __init__(self, solver='liblinear'):
-        self.model = ModelWrapper(LogisticRegression(solver))
+        self.model = ModelWrapper(LogisticRegression(solver=solver))
 
 
 class DesicionTree:
@@ -316,3 +318,11 @@ class DesicionTree:
     """
     def __init__(self, max_depth=1):
         self.model = ModelWrapper(DecisionTreeClassifier(max_depth=max_depth))
+
+
+class Neighbours:
+    """
+    Implementation of K Nearest Neighbours classifier (wrapper) using sklearn
+    """
+    def __init__(self, K=4):
+        self.model = ModelWrapper(KNeighborsClassifier(K))

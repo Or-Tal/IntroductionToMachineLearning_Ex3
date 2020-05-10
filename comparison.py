@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from models import *
+from ex3_utils import *
 
 
 def draw_points(m: int, pad=False):
@@ -49,9 +50,9 @@ def Q9():
         svm_weights = svm_model.get_weights()
 
         # estimate hyperplane
-        true_func = _gen_hyperplane_func('true')
-        perc_func = _gen_hyperplane_func('perceptron')
-        svm_func = _gen_hyperplane_func('svm')
+        true_func = gen_hyperplane_func('true')
+        perc_func = gen_hyperplane_func('perceptron')
+        svm_func = gen_hyperplane_func('svm')
         x_pts = np.linspace(-3, 3, 50)
         y_true = true_func(x_pts)
         y_perc = perc_func(x_pts, perc_weights)
@@ -76,93 +77,64 @@ def Q9():
         plt.show()
 
 
-def _gen_hyperplane_func(hypothesis='true'):
-    """
-    this returns a function for estimating the 2nd coordinate
-    for drawing the hyperplane line purposes
-    """
-    if hypothesis == 'true':
-        def func(X: np.ndarray):
-            X = X.flatten()
-            return 0.6 * X + 0.2
-
-        return func
-    elif hypothesis == 'perceptron':
-        def func(X: np.ndarray, w: np.ndarray):
-            X = X.flatten()
-            w = w.flatten()
-            if w.shape[0] == 3:  # non homogeneous case
-                return -w[0] / w[2] - X * w[1] / w[2]
-            return - X * w[0] / w[1]
-
-        return func
-    elif hypothesis == "svm":
-        def func(X: np.ndarray, w: np.ndarray, b=0):
-            X = X.flatten()
-            w = w.flatten()
-            if w.shape[0] == 3:  # non homogeneous case
-                return - b - w[0] / w[2] - X * w[1] / w[2]
-            return - b - X * w[0] / w[1]
-
-        return func
-    return
-
-
 def Q10():
     """
     Answer to Q10 as described in Ex. sheet
     """
-    perceptron_acc = []
-    svm_acc = []
-    lda_acc = []
-    k = 1000
-    M = [5, 10, 15, 25, 70]
-    for m in M:
-        tmp_perc_acc, tmp_svm_acc, tmp_lda_acc = [], [], []
-        for i in range(500):
-            # draw train and test sets,
-            # Note: Implementation of draw_points enforces existence of {-1,1} tags
-            train_X, train_y = draw_points(m, pad=True)
-            test_X, test_y = draw_points(k, pad=True)
-
-            # get models
-            perceptron_model = Perceptron().model
-            lda_model = LDA().model
-            svm_model = SVM().model
-
-            # fit
-            perceptron_model.fit(train_X, train_y)
-            lda_model.fit(train_X, train_y)
-            svm_model.fit(train_X.T, train_y)
-
-            # predict
-            perceptron_predictions = perceptron_model.predict(test_X).flatten()
-            lda_predictions = lda_model.predict(test_X).flatten()
-            svm_predictions = svm_model.predict(test_X.T).flatten()
-
-            # estimate accuracy
-            perceptron_correct = np.where(test_y - perceptron_predictions == 0)[0].shape[0]
-            lda_correct = np.where(test_y - lda_predictions == 0)[0].shape[0]
-            svm_correct = np.where(test_y - svm_predictions == 0)[0].shape[0]
-            tmp_perc_acc.append(perceptron_correct / k)
-            tmp_lda_acc.append(lda_correct / k)
-            tmp_svm_acc.append(svm_correct / k)
-
-        # update mean accuracy
-        perceptron_acc.append(np.mean(tmp_perc_acc))
-        lda_acc.append(np.mean(tmp_lda_acc))
-        svm_acc.append(np.mean(tmp_svm_acc))
-
-    #plot
-    plt.grid()
-    plt.plot(M, perceptron_acc, c="red")
-    plt.plot(M, lda_acc, c="blue")
-    plt.plot(M, svm_acc, c="m")
-    plt.xlabel("m")
-    plt.ylabel("accuracy")
-    plt.legend(["perceptron", "LDA", "SVM"])
-    plt.title("accuracy as a function of m")
-    plt.show()
+    estimate_models(models=[Perceptron().model, LDA().model, SVM().model],
+                    M=[5, 10, 15, 25, 70], repeat=500, legend=["perceptron", "LDA", "SVM"],
+                    Q10=True)
+    # perceptron_acc = []
+    # svm_acc = []
+    # lda_acc = []
+    # k = 1000
+    # M = [5, 10, 15, 25, 70]
+    # for m in M:
+    #     tmp_perc_acc, tmp_svm_acc, tmp_lda_acc = [], [], []
+    #     for i in range(500):
+    #         # draw train and test sets,
+    #         # Note: Implementation of draw_points enforces existence of {-1,1} tags
+    #         train_X, train_y = draw_points(m, pad=True)
+    #         test_X, test_y = draw_points(k, pad=True)
+    #
+    #         # get models
+    #         perceptron_model = Perceptron().model
+    #         lda_model = LDA().model
+    #         svm_model = SVM().model
+    #
+    #         # fit
+    #         perceptron_model.fit(train_X, train_y)
+    #         lda_model.fit(train_X, train_y)
+    #         svm_model.fit(train_X.T, train_y)
+    #
+    #         # predict
+    #         perceptron_predictions = perceptron_model.predict(test_X).flatten()
+    #         lda_predictions = lda_model.predict(test_X).flatten()
+    #         svm_predictions = svm_model.predict(test_X.T).flatten()
+    #
+    #         # estimate accuracy
+    #         perceptron_correct = np.where(test_y - perceptron_predictions == 0)[0].shape[0]
+    #         lda_correct = np.where(test_y - lda_predictions == 0)[0].shape[0]
+    #         svm_correct = np.where(test_y - svm_predictions == 0)[0].shape[0]
+    #         tmp_perc_acc.append(perceptron_correct / k)
+    #         tmp_lda_acc.append(lda_correct / k)
+    #         tmp_svm_acc.append(svm_correct / k)
+    #
+    #     # update mean accuracy
+    #     perceptron_acc.append(np.mean(tmp_perc_acc))
+    #     lda_acc.append(np.mean(tmp_lda_acc))
+    #     svm_acc.append(np.mean(tmp_svm_acc))
+    #
+    # #plot
+    # plt.grid()
+    # plt.plot(M, perceptron_acc, c="red")
+    # plt.plot(M, lda_acc, c="blue")
+    # plt.plot(M, svm_acc, c="m")
+    # plt.xlabel("m")
+    # plt.ylabel("accuracy")
+    # plt.legend(["perceptron", "LDA", "SVM"])
+    # plt.title("accuracy as a function of m")
+    # plt.show()
 
 
 if __name__ == "__main__":
